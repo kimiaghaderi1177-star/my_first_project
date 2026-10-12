@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طلانو · خرید و فروش طلا و نقره</title>
+    <!-- Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
+            }
+        }
+    </script>
+    <style>
+        /* فونت و ریست */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+        }
+        body {
+            background: radial-gradient(circle at 20% 30%, #fff9e6, #ffffff, #f0f0f0);
+            color: #2c2c2c;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+        /* کانواس سه بعدی پس‌زمینه */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none; /* اجازه تعامل با عناصر رویی */
+        }
+        /* کانتینر اصلی */
+        .main-wrapper {
+            position: relative;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 30px 60px;
+            backdrop-filter: blur(2px);
+        }
+        /* هدر */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 2px solid rgba(212, 175, 55, 0.3);
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .logo h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #d4af37, #f9e076, #b8860b, #c0c0c0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+        .logo span {
+            font-size: 1rem;
+            color: #a0a0a0;
+            display: block;
+            margin-top: -5px;
+        }
+        .auth-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        .btn {
+            padding: 12px 28px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #ffffff;
+            color: #2c2c2c;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(212, 175, 55, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-gold {
+            background: linear-gradient(145deg, #f9e076, #d4af37);
+            color: #1e1e1e;
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+        }
+        .btn-silver {
+            background: linear-gradient(145deg, #e0e0e0, #b0b0b0);
+            color: #1e1e1e;
+            box-shadow: 0 8px 20px rgba(192, 192, 192, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+        }
+        .btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 28px rgba(212, 175, 55, 0.5);
+        }
+        /* قیمت لحظه‌ای */
+        .price-section {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 40px 0 50px;
+            flex-wrap: wrap;
+        }
+        .price-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 30px;
+            padding: 30px 40px;
+            min-width: 260px;
+box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(212, 175, 55, 0.3), 0 0 0 4px rgba(255, 255, 255, 0.6);
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+        .price-card.gold {
+            border-top: 6px solid #d4af37;
+        }
+        .price-card.silver {
+            border-top: 6px solid #c0c0c0;
+        }
+        .price-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 35px 50px -15px rgba(212, 175, 55, 0.35), 0 0 0 1px #d4af37, 0 0 0 6px rgba(255, 255, 255, 0.8);
+        }
+        .price-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #3a3a3a;
+        }
+        .price-card .price-value {
+            font-size: 2.6rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #b8860b, #d4af37, #f9e076);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 10px 0;
+        }
+        .price-card.silver .price-value {
+            background: linear-gradient(135deg, #808080, #c0c0c0, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .price-unit {
+            font-size: 1rem;
+            color: #7a7a7a;
+            font-weight: 400;
+        }
+        .price-change {
+            font-size: 0.95rem;
+            margin-top: 10px;
+            color: #2e7d32;
+            font-weight: 600;
+        }
+        .price-change.down {
+            color: #c62828;
+        }
+        /* بخش احراز هویت و ثبت نام */
+        .auth-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin: 50px 0 30px;
+        }
+        .auth-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-radius: 35px;
+            padding: 35px 30px;
+            box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(212, 175, 55, 0.25), 0 0 0 4px rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+        .auth-card:hover {
+            box-shadow: 0 35px 55px -15px rgba(212, 175, 55, 0.3), 0 0 0 1px #d4af37, 0 0 0 6px rgba(255, 255, 255, 0.8);
+        }
+        .auth-card h2 {
+            font-size: 1.9rem;
+            margin-bottom: 25px;
+            font-weight: 600;
+            color: #2c2c2c;
+            border-right: 5px solid #d4af37;
+            padding-right: 18px;
+            background: linear-gradient(135deg, #2c2c2c, #5a5a5a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .auth-card.silver-border h2 {
+            border-right-color: #c0c0c0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #4a4a4a;
+            font-size: 0.95rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 15px 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            background: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+        .form-group input:focus {
+border-color: #d4af37;
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15);
+            background: #ffffff;
+        }
+        .form-group input[type="password"] {
+            border-color: rgba(192, 192, 192, 0.6);
+        }
+        .form-group input[type="password"]:focus {
+            border-color: #c0c0c0;
+            box-shadow: 0 0 0 4px rgba(192, 192, 192, 0.2);
+        }
+        .auth-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: 10px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(145deg, #f9e076, #d4af37);
+            color: #1e1e1e;
+            box-shadow: 0 10px 20px -8px rgba(212, 175, 55, 0.6);
+        }
+        .auth-card.silver-border .auth-btn {
+            background: linear-gradient(145deg, #e0e0e0, #b0b0b0);
+            box-shadow: 0 10px 20px -8px rgba(192, 192, 192, 0.7);
+        }
+        .auth-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 18px 28px -8px rgba(212, 175, 55, 0.8);
+        }
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #6b6b6b;
+        }
+        .auth-footer a {
+            color: #b8860b;
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 1px dashed #d4af37;
+        }
+        /* المان‌های تزئینی */
+        .glow-line {
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #d4af37, #c0c0c0, #d4af37, transparent);
+            margin: 50px 0 20px;
+            border-radius: 10px;
+            opacity: 0.5;
+        }
+        .badge-3d {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            color: #8a6d1f;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        /* ریسپانسیو */
+        @media (max-width: 900px) {
+            .auth-section {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            .main-wrapper {
+                padding: 15px 20px 40px;
+            }
+            .price-card {
+                padding: 25px 25px;
+                min-width: 200px;
+            }
+            .price-card .price-value {
+                font-size: 2rem;
+            }
+            .logo h1 {
+                font-size: 1.8rem;
+            }
+        }
+        @media (max-width: 500px) {
+            .price-section {
+                gap: 20px;
+            }
+            .price-card {
+                width: 100%;
+            }
+            .auth-buttons .btn {
+                padding: 10px 18px;
+                font-size: 0.9rem;
+            }
+        }
+        /* متن‌های کوچک */
+        .vibe-text {
+            text-align: center;
+            color: #8a8a8a;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            margin-top: 20px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <!-- کانواس Three.js -->
+    <div id="canvas-container"></div>
+
+    <div class="main-wrapper">
+        <header>
+            <div class="logo">
+                <h1>✨ طلانو</h1>
+                <span>تجارت طلا و نقره</span>
+            </div>
+            <div class="auth-buttons">
+                <button class="btn btn-gold" id="loginBtn">ورود</button>
+                <button class="btn btn-silver" id="registerBtn">ثبت نام</button>
+            </div>
+        </header>
+
+        <!-- قیمت لحظه‌ای -->
+<div class="price-section">
+            <div class="price-card gold">
+                <h3>🥇 طلا (۱۸ عیار)</h3>
+                <div class="price-value" id="goldPrice">3,245,000</div>
+                <div class="price-unit">تومان / گرم</div>
+                <div class="price-change" id="goldChange">▲ 1.2%</div>
+            </div>
+            <div class="price-card silver">
+                <h3>🥈 نقره (۹۹۹)</h3>
+                <div class="price-value" id="silverPrice">42,800</div>
+                <div class="price-unit">تومان / گرم</div>
+                <div class="price-change down" id="silverChange">▼ 0.3%</div>
+            </div>
+        </div>
+
+        <!-- بخش احراز هویت و ثبت نام -->
+        <div class="auth-section" id="authSection">
+            <!-- ثبت نام -->
+            <div class="auth-card">
+                <div class="badge-3d">🚀 عضویت سریع</div>
+                <h2>ثبت نام</h2>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label>نام و نام خانوادگی</label>
+                        <input type="text" placeholder="مثال: علی محمدی" required>
+                    </div>
+                    <div class="form-group">
+                        <label>شماره موبایل</label>
+                        <input type="tel" placeholder="09123456789" required>
+                    </div>
+                    <div class="form-group">
+                        <label>رمز عبور</label>
+                        <input type="password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="auth-btn">ایجاد حساب</button>
+                </form>
+                <div class="auth-footer">
+                    قبلاً ثبت نام کرده‌اید؟ <a href="#" id="goToLogin">ورود</a>
+                </div>
+            </div>
+
+            <!-- احراز هویت / ورود -->
+            <div class="auth-card silver-border">
+                <div class="badge-3d">🔐 ورود امن</div>
+                <h2>احراز هویت</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label>شماره موبایل</label>
+                        <input type="tel" placeholder="09123456789" required>
+                    </div>
+                    <div class="form-group">
+                        <label>رمز عبور</label>
+                        <input type="password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="auth-btn">ورود به حساب</button>
+                </form>
+                <div class="auth-footer">
+                    حساب ندارید؟ <a href="#" id="goToRegister">ثبت نام</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="glow-line"></div>
+        <div class="vibe-text">✦ تجربه‌ای لوکس از خرید و فروش طلا و نقره ✦</div>
+    </div>
+
+    <!-- اسکریپت Three.js -->
+    <script type="module">
+        import * as THREE from 'three';
+
+        // --- صحنه Three.js ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.background = null; // شفاف تا پس‌زمینه CSS دیده شود
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 12);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+
+        // --- نورپردازی ---
+        // نور محیطی
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        // نور نقطه‌ای طلایی
+        const goldLight = new THREE.PointLight(0xffd700, 1.5, 30);
+        goldLight.position.set(3, 3, 5);
+        scene.add(goldLight);
+        // نور نقطه‌ای نقره‌ای
+        const silverLight = new THREE.PointLight(0xc0c0c0, 1.2, 30);
+        silverLight.position.set(-4, -2, 6);
+        scene.add(silverLight);
+
+        // نور از پایین برای درخشش
+        const bottomLight = new THREE.PointLight(0xd4af37, 0.8);
+        bottomLight.position.set(0, -5, 3);
+        scene.add(bottomLight);
+
+        // --- اشیاء سه بعدی: طلا و نقره ---
+        // 1. کره طلایی (نماد طلا)
+        const goldSphereGeo = new THREE.SphereGeometry(1.2, 64, 64);
+        const goldSphereMat = new THREE.MeshStandardMaterial({
+            color: 0xd4af37,
+            roughness: 0.25,
+            metalness: 0.9,
+            emissive: new THREE.Color(0x553300),
+            emissiveIntensity: 0.15,
+            envMapIntensity: 1.0
+        });
+        const goldSphere = new THREE.Mesh(goldSphereGeo, goldSphereMat);
+        goldSphere.position.set(2.2, 1.0, -2);
+        scene.add(goldSphere);
+
+        // 2. استوانه نقره‌ای (نماد نقره)
+        const silverCylinderGeo = new THREE.CylinderGeometry(0.9, 0.9, 1.8, 64);
+        const silverCylinderMat = new THREE.MeshStandardMaterial({
+            color: 0xe0e0e0,
+            roughness: 0.2,
+            metalness: 0.95,
+            emissive: new THREE.Color(0x222222),
+            emissiveIntensity: 0.1
+        });
+        const silverCylinder = new THREE.Mesh(silverCylinderGeo, silverCylinderMat);
+        silverCylinder.position.set(-2.5, -0.8, -1.5);
+        scene.add(silverCylinder);
+
+        // 3. حلقه طلایی (توری)
+        const torusGeo = new THREE.TorusGeometry(0.9, 0.25, 32, 100);
+        const torusMat = new THREE.MeshStandardMaterial({
+            color: 0xf9e076,
+            roughness: 0.15,
+            metalness: 1.0,
+            emissive: new THREE.Color(0x664400),
+            emissiveIntensity: 0.1
+        });
+        const torus = new THREE.Mesh(torusGeo, torusMat);
+        torus.position.set(0.5, -1.5, 0.5);
+        torus.rotation.x = Math.PI / 3;
+        torus.rotation.y = Math.PI / 5;
+        scene.add(torus);
+
+        // 4. ذرات معلق (درخشش)
+        const particlesGeo = new THREE.BufferGeometry();
+        const particlesCount = 400;
+        const posArray = new Float32Array(particlesCount * 3);
+        for (let i = 0; i < particlesCount * 3; i += 3) {
+            posArray[i] = (Math.random() - 0.5) * 30;
+            posArray[i+1] = (Math.random() - 0.5) * 20;
+            posArray[i+2] = (Math.random() - 0.5) * 20 - 5;
+        }
+        particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMat = new THREE.PointsMaterial({
+            size: 0.08,
+            color: 0xd4af37,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
+        });
+        const particles = new THREE.Points(particlesGeo, particlesMat);
+        scene.add(particles);
+
+        // 5. مکعب نقره‌ای کوچک
+        const cubeGeo = new THREE.BoxGeometry(0.6, 0.6, 0.6);
+        const cubeMat = new THREE.MeshStandardMaterial({
+            color: 0xc0c0c0,
+            roughness: 0.3,
+            metalness: 0.9,
+            emissive: new THREE.Color(0x333333),
+            emissiveIntensity: 0.1
+        });
+        const cube = new THREE.Mesh(cubeGeo, cubeMat);
+        cube.position.set(-1.8, 1.8, -1);
+        scene.add(cube);
+
+        // 6. سکه طلایی تخت
+        const coinGeo = new THREE.CylinderGeometry(0.7, 0.7, 0.1, 40);
+        const coinMat = new THREE.MeshStandardMaterial({
+            color: 0xffd700,
+            roughness: 0.2,
+            metalness: 0.95,
+            emissive: new THREE.Color(0x996600),
+            emissiveIntensity: 0.2
+        });
+        const coin = new THREE.Mesh(coinGeo, coinMat);
+        coin.position.set(2.0, -1.8, 1);
+        coin.rotation.x = Math.PI / 2;
+        coin.rotation.z = 0.3;
+        scene.add(coin);
+        // 7. حلقه نقره‌ای
+        const silverRingGeo = new THREE.TorusGeometry(0.7, 0.15, 24, 80);
+        const silverRingMat = new THREE.MeshStandardMaterial({
+            color: 0xe8e8e8,
+            roughness: 0.1,
+            metalness: 1.0,
+            emissive: new THREE.Color(0x444444),
+            emissiveIntensity: 0.1
+        });
+        const silverRing = new THREE.Mesh(silverRingGeo, silverRingMat);
+        silverRing.position.set(-2.0, 0.5, 0.8);
+        silverRing.rotation.x = Math.PI / 2;
+        silverRing.rotation.y = 0.8;
+        scene.add(silverRing);
+
+        // --- انیمیشن ---
+        let clock = new THREE.Clock();
+
+        function animate() {
+            const elapsedTime = clock.getElapsedTime();
+
+            // چرخش کره طلا
+            goldSphere.rotation.y = elapsedTime * 0.3;
+            goldSphere.rotation.x = Math.sin(elapsedTime * 0.2) * 0.2;
+
+            // چرخش استوانه نقره
+            silverCylinder.rotation.y = elapsedTime * 0.4;
+            silverCylinder.rotation.z = Math.sin(elapsedTime * 0.3) * 0.1;
+
+            // چرخش حلقه طلایی
+            torus.rotation.y = elapsedTime * 0.5;
+            torus.rotation.x = Math.PI / 3 + Math.sin(elapsedTime * 0.4) * 0.2;
+
+            // چرخش مکعب
+            cube.rotation.x = elapsedTime * 0.6;
+            cube.rotation.y = elapsedTime * 0.8;
+
+            // چرخش سکه
+            coin.rotation.z = elapsedTime * 0.5;
+            coin.rotation.y = elapsedTime * 0.2;
+
+            // چرخش حلقه نقره
+            silverRing.rotation.x = Math.PI / 2 + Math.sin(elapsedTime * 0.5) * 0.2;
+            silverRing.rotation.y = elapsedTime * 0.4;
+
+            // حرکت ذرات
+            particles.rotation.y = elapsedTime * 0.02;
+            particles.rotation.x = Math.sin(elapsedTime * 0.1) * 0.05;
+
+            // نوسان ملایم نورها
+            goldLight.intensity = 1.2 + Math.sin(elapsedTime * 2) * 0.3;
+            silverLight.intensity = 1.0 + Math.cos(elapsedTime * 1.8) * 0.25;
+
+            // حرکت دوربین خیلی ملایم
+            camera.position.x = Math.sin(elapsedTime * 0.1) * 0.8;
+            camera.position.y = Math.cos(elapsedTime * 0.15) * 0.5;
+            camera.lookAt(0, 0, 0);
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // --- ریسایز ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- قیمت لحظه‌ای (شبیه‌سازی) ---
+        function updatePrices() {
+            const goldBase = 3245000;
+            const silverBase = 42800;
+            const goldVariation = (Math.random() - 0.5) * 20000;
+            const silverVariation = (Math.random() - 0.5) * 400;
+            const goldPrice = Math.round(goldBase + goldVariation);
+            const silverPrice = Math.round(silverBase + silverVariation);
+
+            document.getElementById('goldPrice').textContent = goldPrice.toLocaleString('fa-IR');
+            document.getElementById('silverPrice').textContent = silverPrice.toLocaleString('fa-IR');
+
+            // تغییرات تصادفی درصدی
+            const goldChangeEl = document.getElementById('goldChange');
+            const silverChangeEl = document.getElementById('silverChange');
+            const goldPercent = (Math.random() * 2 - 0.5).toFixed(1);
+            const silverPercent = (Math.random() * 1.6 - 0.8).toFixed(1);
+            
+            if (parseFloat(goldPercent) >= 0) {
+                goldChangeEl.textContent = ▲ ${goldPercent}%;
+                goldChangeEl.style.color = '#2e7d32';
+            } else {
+                goldChangeEl.textContent = ▼ ${Math.abs(goldPercent)}%;
+                goldChangeEl.style.color = '#c62828';
+            }
+if (parseFloat(silverPercent) >= 0) {
+                silverChangeEl.textContent = ▲ ${silverPercent}%;
+                silverChangeEl.style.color = '#2e7d32';
+            } else {
+                silverChangeEl.textContent = ▼ ${Math.abs(silverPercent)}%;
+                silverChangeEl.style.color = '#c62828';
+            }
+        }
+
+        // به‌روزرسانی هر ۵ ثانیه
+        setInterval(updatePrices, 5000);
+
+        // --- تعاملات دکمه‌ها و اسکرول ---
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            document.querySelector('.auth-card.silver-border').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        document.getElementById('registerBtn').addEventListener('click', () => {
+            document.querySelector('.auth-card:first-child').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        document.getElementById('goToLogin').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelector('.auth-card.silver-border').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        document.getElementById('goToRegister').addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelector('.auth-card:first-child').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        // جلوگیری از ارسال فرم‌ها (فقط فرانت‌اند)
+        document.getElementById('registerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('✨ ثبت نام با موفقیت انجام شد (شبیه‌سازی)');
+        });
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('🔐 ورود موفق (شبیه‌سازی)');
+        });
+
+        // --- افکت اضافی: درخشش ملایم با حرکت ماوس روی کارت‌ها ---
+        const cards = document.querySelectorAll('.price-card, .auth-card');
+        cards.forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = (y - centerY) / 20
